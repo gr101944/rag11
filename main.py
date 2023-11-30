@@ -123,6 +123,12 @@ def create_sidebar (st):
         """,
         unsafe_allow_html=True
     )
+    html_code = """
+        <style>
+            div.row-widget.stRadio > div{flex-direction:row;}
+        </style>
+    """
+    st.markdown(html_code, unsafe_allow_html=True)
     
     image_path = os.path.join(STATIC_ASSEST_BUCKET_URL, STATIC_ASSEST_BUCKET_FOLDER, LOGO_NAME)
     with st.sidebar:
@@ -138,13 +144,14 @@ def create_sidebar (st):
     other_sources_default = ['KR']
     embedding_options = ['text-embedding-ada-002']
     persistence_options = [ 'Pinecone']
+    model_options = ['gpt-3.5-turbo','gpt-4', 'gpt-4-1106-preview','gpt-3.5-turbo-1106', 'gpt-3.5-turbo-16k']
     # 
     url = "https://www.persistent.com/"
     
    
     with st.sidebar.expander(" 🛠️ Configurations ", expanded=False):
     # Option to preview memory store
-        model_name  = st.selectbox(label='LLM:', options=['gpt-3.5-turbo','gpt-4', 'gpt-4-1106-preview','gpt-3.5-turbo-1106', 'gpt-3.5-turbo-16k'], help='GPT-4 in waiting list 🤨')
+        model_name  = st.selectbox(label='LLM:', options=model_options, help='GPT-4 in waiting list 🤨')
         embedding_model_name  = st.radio('Embedding:', options=embedding_options, help='Option to change embedding model, keep in mind to match with the LLM 🤨')
         persistence_choice = st.radio('Persistence', persistence_options, help = "Using Pinecone...")
         chunk_size = st.number_input ("Chunk Size",value= 400)
@@ -152,10 +159,7 @@ def create_sidebar (st):
         k_similarity_num = st.number_input ("K value",value= 5)
         k_similarity = int(k_similarity_num)
         max_output_tokens = st.number_input ("Max Output Tokens",value=512)
-        print("k_similarity ", k_similarity )
-        print("max_output_tokens ", max_output_tokens )
-        print ('persistence_choice ', persistence_choice)    
-        print ('embedding_model_name ', embedding_model_name)   
+ 
     task= None
     task = st.sidebar.radio('Choose task:', task_list, help = "Program can both Load Data and perform query", index=0)
     selected_sources = None
@@ -171,7 +175,7 @@ def create_sidebar (st):
 
     if (task == 'Data Load'):
             print ('Data Load triggered, assiging ingestion source')
-            ingest_source_chosen = st.radio('Choose :', source_data_list, help = "For loading documents into specific domain")
+            ingest_source_chosen = st.radio('Choose Knowledge Repository:', source_data_list, help = "For loading documents into specific domain")
             uploaded_files = st.file_uploader('Upload Files Here', accept_multiple_files=True)
             upload_kr_docs_button = st.button("Upload", key="upload_kr_docs")
            
@@ -202,13 +206,10 @@ def create_sidebar (st):
                     # 'KR' is not selected, so don't show the 'sources_chosen' multiselect
                     sources_chosen = None
                 macro_view = st.sidebar.checkbox("Macro View", value=False, key=None, help='If checked, the full input would be passed to the model, Use GPT4 32k or better', on_change=None, args=None, kwargs=None, disabled=False, label_visibility="visible")
-                
-                
-            
+                        
                 if len(selected_sources) > 1:
                     summarize = st.sidebar.checkbox("Summarize", value=False, key=None, help='If checked, summarizes content from all sources along with individual responses', on_change=None, args=None, kwargs=None, disabled=False, label_visibility="visible")
-                else:
-                
+                else:                
                     summarize = None
             
                 if 'Website' in selected_sources:
@@ -1715,7 +1716,7 @@ with container:
             promptId_random = "prompt-" + random_string
             get_response (user_input, source_data_list, promptId_random)
             download_str = []
-        # Display the conversation history using an expander, and allow the user to download it
+        # Display the conversation history using an expander, and allow the user to download it.
             with st.expander("Download Conversation", expanded=False):
                 for i in range(len(st.session_state['generated'])-1, -1, -1):
                     st.info(st.session_state["past"][i],icon="✅")
